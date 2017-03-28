@@ -10,6 +10,7 @@
 #include <time.h>
 #include <cudnn.h>  // cudnn
 #include <curand.h> // curand
+#include <sys/time.h> // get time of day
 
 #define NCHW 0
 #define CHWN 1
@@ -57,6 +58,9 @@ int main(){
     float alpha = 1;
     float beta = 0;
 
+    struct timeval start_point, end_point;
+    double elapsed_time;
+
 
     // Allocate host memory
     h_input = (float*)malloc(input_n*input_c*input_h*input_w*sizeof(float));
@@ -102,9 +106,19 @@ int main(){
     CHECK("Get Workspace Size",cudnnGetConvolutionForwardWorkspaceSize(cudnnHandler,inputDesc,filterDesc,convDesc,outputDesc,FOWARDALGO,&wsSize));
     // Generate Workspace Size
     cudaMalloc((void**) &d_workspace, wsSize);
+
+    // measure the time
+    gettimeofday(&start_point,NULL);
     // Convolution Forward
     CHECK("cudnnConvolutionForward",cudnnConvolutionForward(cudnnHandler,&alpha,inputDesc,d_input,filterDesc,d_w,convDesc,FOWARDALGO,d_workspace,wsSize,&beta,outputDesc,d_output));
-    cudaDeviceSynchronize();
+    // wait until done
+    cudaDeviceSynchronize(); 
+    // measure the finish time
+    gettimeofday(&end_point,NULL);
+    elapsed_time = (double)(end_point.tv_sec)*1000+(double)(end_point.tv_usec)/1000-(double)(start_point.tv_sec)*1000-(double)(start_point.tv_usec)/1000;
+    printf("%f ms\n",elapsed_time);
+
+
     // free host memory
     free(h_input);
     free(h_output);
