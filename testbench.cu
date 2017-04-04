@@ -138,5 +138,6 @@ int main(){
     curandDestroyGenerator(gen);
 #else
 #endif
+#else
 #endif
 }
