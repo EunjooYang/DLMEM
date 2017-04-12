@@ -1,0 +1,30 @@
+#!/bin/bash
+
+ARGC=5
+
+if [ $# -eq $ARGC ]
+then
+    BATCH_SIZE=$1
+    INPUT_SIZE=$2
+    INPUT_C=$3
+    OUTPUT_C=$4
+    FILTER_SIZE=$5
+    DATA_N=$(($INPUT_SIZE*$INPUT_SIZE*$INPUT_C))
+    DATA_OPTION='dummy-lr-'$((DATA_N))
+    CUDNN_OPTION=$((BATCH_SIZE))' '$((INPUT_C))' '$((INPUT_SIZE))' '$((OUTPUT_C))' '$((FILTER_SIZE))
+
+    echo "----------------------------------------------------------------------------------------------------"  
+    echo "          [memlayout_cudnn]"
+    ./memlayout_cudnn $CUDNN_OPTION
+    echo "----------------------------------------------------------------------------------------------------"  
+    echo "          [memlayout_cudaconvnet]"
+    python memlayout_cudaconv.py --data-provider $DATA_OPTION --test-range 1 --train-range 1 --data-path /tmp/cifar-10-py-colmajor --inner-size $INPUT_SIZE --save-path /tmp/cudaconv_rand --gpu 0 --layer-def ~/cuda-convnet2/layers/layers-cifar10-11pct.cfg --layer-params ~/cuda-convnet2/layers/layer-params-cifar10-11pct.cfg  --mini $BATCH_SIZE --epochs 1
+    echo "----------------------------------------------------------------------------------------------------"  
+
+else 
+    echo "----------------------------------------------------------------------------------------------------"  
+    echo "          [Execution Error]"
+    echo "  Plase Enter the Mini Batch Size and Input Image Size"
+    echo "  ./dlmem_test (batch size) (input size) (input channel) (output channel) (filter size)"
+    echo "----------------------------------------------------------------------------------------------------"  
+fi

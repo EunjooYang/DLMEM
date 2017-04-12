@@ -46,9 +46,9 @@ int main(int argc, char *argv[]){
     float *d_w; 
 
     int input_n = 256;
-    int input_c = 64;
-    int input_h = 12;
-    int input_w = 12;
+    int input_c = 3;
+    int input_h = 24;
+    int input_w = 24;
     int filter_cout = 64;
     int filter_cin = input_c;
     int filter_height = 5;
@@ -68,22 +68,30 @@ int main(int argc, char *argv[]){
         printf("Execution Error\n");
         printf("Please Enter the Execution Options \n");
         printf("./memlayout_cudnn 'minibatchsize' 'input_c' 'input_size' 'output_c' 'filter_size'\n");
-        exit(0);
+        printf("Follow Default Setting\n");
+        printf("======================================\n");
+        printf("Start to cudnn memory layout test\n");
+        printf("\t mini batch size : %d\n",input_n);
+        printf("\t input channel : %d\n", input_c);
+        printf("\t input image size: %d\n", input_w);
+        printf("\t output channel : %d\n", filter_cout);
+        printf("\t filter size : %d\n", filter_height);
+        printf("======================================\n");
     }else{
 
-      input_n = atoi(argv[2]);  
-      input_c = atoi(argv[3]);
-      input_w = input_h =  atoi(argv[4]);
-      filter_cout = atoi(argv[5]);
-      filter_height = filter_width = atoi(argv[6]);
-      printf("======================================\n");
-      printf("Start to cudnn memory layout test\n");
-      printf("\t mini batch size : %d\n",input_n);
-      printf("\t input channel : %d\n", input_c);
-      printf("\t input image size: %d\n", input_w);
-      printf("\t output channel : %d\n", filter_cout);
-      printf("\t filter size : %d\n", filter_height);
-      printf("======================================\n");
+        input_n = atoi(argv[1]);  
+        input_c = atoi(argv[2]);
+        input_w = input_h =  atoi(argv[3]);
+        filter_cout = atoi(argv[4]);
+        filter_height = filter_width = atoi(argv[5]);
+        printf("======================================\n");
+        printf("Start to cudnn memory layout test\n");
+        printf("\t mini batch size : %d\n",input_n);
+        printf("\t input channel : %d\n", input_c);
+        printf("\t input image size: %d\n", input_w);
+        printf("\t output channel : %d\n", filter_cout);
+        printf("\t filter size : %d\n", filter_height);
+        printf("======================================\n");
     }
 
     // Allocate host memory
