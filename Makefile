@@ -1,31 +1,8 @@
 ################################################################################
 #
-# Copyright 1993-2012 NVIDIA Corporation.  All rights reserved.
+# Make File for complie  memlayout_cudnn.cu
 #
-# NOTICE TO USER:   
-#
-# This source code is subject to NVIDIA ownership rights under U.S. and 
-# international Copyright laws.  
-#
-# NVIDIA MAKES NO REPRESENTATION ABOUT THE SUITABILITY OF THIS SOURCE 
-# CODE FOR ANY PURPOSE.  IT IS PROVIDED "AS IS" WITHOUT EXPRESS OR 
-# IMPLIED WARRANTY OF ANY KIND.  NVIDIA DISCLAIMS ALL WARRANTIES WITH 
-# REGARD TO THIS SOURCE CODE, INCLUDING ALL IMPLIED WARRANTIES OF 
-# MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE.   
-# IN NO EVENT SHALL NVIDIA BE LIABLE FOR ANY SPECIAL, INDIRECT, INCIDENTAL, 
-# OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS 
-# OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE 
-# OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE 
-# OR PERFORMANCE OF THIS SOURCE CODE.  
-#
-# U.S. Government End Users.  This source code is a "commercial item" as 
-# that term is defined at 48 C.F.R. 2.101 (OCT 1995), consisting  of 
-# "commercial computer software" and "commercial computer software 
-# documentation" as such terms are used in 48 C.F.R. 12.212 (SEPT 1995) 
-# and is provided to the U.S. Government only as a commercial end item.  
-# Consistent with 48 C.F.R.12.212 and 48 C.F.R. 227.7202-1 through 
-# 227.7202-4 (JUNE 1995), all U.S. Government End Users acquire the 
-# source code with only those rights set forth herein.
+#   Eunjoo Yang
 #
 ################################################################################
 
@@ -34,17 +11,17 @@ HOME = /home/dlmem
 CUDA_INC_PATH  = $(CUDA_HOME)/include
 CUDA_BIN_PATH  = $(CUDA_HOME)/bin
 CUDA_LIB_PATH  = $(CUDA_HOME)/lib64
-CUDA_CONV_PATH = $(HOME)/cuda-convnet2
+
+# CUDA Architecture
+DEVICE  :=sm_61
 
 # Common binaries
 NVCC            = $(CUDA_BIN_PATH)/nvcc
-
-LDFLAGS := -L$(CUDA_LIB_PATH) -lcudart
-TARGET	:= test_cudaconv
+TARGET	:= memlayout_cudnn
+ARCH_OPTION  := -arch
 
 ########## USER STUFF ###########
-LDFLAGS   		+= -L/home/dlmem/cuda-convnet2/util -lutilpy -L$(CUDA_CONV_PATH)/nvmatrix -lnvmatrix -lcublas -L$(CUDA_CONV_PATH)/cudaconv3 -lcudaconv -lcudnn -lcurand
-INCLUDES      	:= -I$(CUDA_INC_PATH) -I $(CUDA_HOME)/samples/common/inc -I $(CUDA_SDK_PATH)/common/inc -I /home/dlmem/cuda-convnet2/cudaconv3/include -I ~/cuda-convnet2/nvmatrix/include
+LDFLAGS   		+= -lcublas -lcudnn -lcurand
 
 CUFILES	:= $(shell find . -name "*.cu")
 CU_DEPS	:= $(shell find . -name "*.cuh")
@@ -53,5 +30,8 @@ C_DEPS	:= $(shell find . -name "*.h")
 
 
 ## Target rules
-$(TARGET):$(TARGET).cu
-	$(NVCC) $(INCLUDES) $(LDFLAGS) $(TARGET).cu -o $(TARGET)
+$(TARGET): clean $(TARGET).cu
+	$(NVCC) $(ARCH_OPTION)=$(DEVICE) $(LDFLAGS) $(TARGET).cu -o $(TARGET) 
+
+clean:
+	-rm -f $(TARGET)
