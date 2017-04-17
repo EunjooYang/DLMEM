@@ -12,13 +12,16 @@ then
     DATA_N=$(($INPUT_SIZE*$INPUT_SIZE*$INPUT_C))
     DATA_OPTION='dummy-lr-'$((DATA_N))
     CUDNN_OPTION=$((BATCH_SIZE))' '$((INPUT_C))' '$((INPUT_SIZE))' '$((OUTPUT_C))' '$((FILTER_SIZE))
+    LAYER_NUM=2
+    LAYER_DEF=~/DEV/dlmem/model/layers-testset$((LAYER_NUM)).cfg
+    LAYER_PARAMS=~/DEV/dlmem/model/layers-params-testset$((LAYER_NUM)).cfg
 
-    echo "----------------------------------------------------------------------------------------------------"  
-    echo "          [memlayout_cudnn]"
-    ./memlayout_cudnn $CUDNN_OPTION
+    #echo "----------------------------------------------------------------------------------------------------"  
+    #echo "          [memlayout_cudnn]"
+    #./memlayout_cudnn $CUDNN_OPTION
     echo "----------------------------------------------------------------------------------------------------"  
     echo "          [memlayout_cudaconvnet]"
-    python memlayout_cudaconv.py --data-provider $DATA_OPTION --test-range 1 --train-range 1 --data-path /tmp/cifar-10-py-colmajor --inner-size $INPUT_SIZE --save-path /tmp/cudaconv_rand --gpu 0 --layer-def ~/cuda-convnet2/layers/layers-cifar10-11pct.cfg --layer-params ~/cuda-convnet2/layers/layer-params-cifar10-11pct.cfg  --mini $BATCH_SIZE --epochs 1
+    python memlayout_cudaconv.py --data-provider $DATA_OPTION --test-range 1 --train-range 1 --data-path /tmp/cifar-10-py-colmajor --inner-size $INPUT_SIZE --save-path /tmp/cudaconv_rand --gpu 0 --layer-def $LAYER_DEF --layer-params $LAYER_PARAMS  --mini $BATCH_SIZE --epochs 1
     echo "----------------------------------------------------------------------------------------------------"  
 
 else 

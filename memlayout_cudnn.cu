@@ -30,6 +30,7 @@
 // convolution method
 #define FOWARDALGO CUDNN_CONVOLUTION_FWD_ALGO_IMPLICIT_GEMM
 
+__global__ void Transformation(float *in, float *out);
 
 int main(int argc, char *argv[]){
 
@@ -45,11 +46,12 @@ int main(int argc, char *argv[]){
     float *d_output, *h_output;
     float *d_w; 
 
-    int input_n = 256;
-    int input_c = 3;
-    int input_h = 24;
-    int input_w = 24;
-    int filter_cout = 64;
+    // Default Setting
+    int input_n = 128;
+    int input_c = 16;
+    int input_h = 14;
+    int input_w = 14;
+    int filter_cout = 16;
     int filter_cin = input_c;
     int filter_height = 5;
     int filter_width = 5;
@@ -64,10 +66,10 @@ int main(int argc, char *argv[]){
     struct timeval start_point, end_point;
     double elapsed_time;
 
-    if (argc < 6){
+    if (argc < 7){
         printf("Execution Error\n");
         printf("Please Enter the Execution Options \n");
-        printf("./memlayout_cudnn 'minibatchsize' 'input_c' 'input_size' 'output_c' 'filter_size'\n");
+        printf("./memlayout_cudnn 'minibatchsize' 'input_c' 'input_size' 'output_c' 'filter_size' 'stride'\n");
         printf("Follow Default Setting\n");
         printf("======================================\n");
         printf("Start to cudnn memory layout test\n");
@@ -76,6 +78,7 @@ int main(int argc, char *argv[]){
         printf("\t input image size: %d\n", input_w);
         printf("\t output channel : %d\n", filter_cout);
         printf("\t filter size : %d\n", filter_height);
+        printf("\t stride : %d\n", conv_stride[0]);
         printf("======================================\n");
     }else{
 
@@ -83,7 +86,9 @@ int main(int argc, char *argv[]){
         input_c = atoi(argv[2]);
         input_w = input_h =  atoi(argv[3]);
         filter_cout = atoi(argv[4]);
+        filter_cin = input_c;
         filter_height = filter_width = atoi(argv[5]);
+        conv_stride[0] = conv_stride[1] = atoi(argv[6]);
         printf("======================================\n");
         printf("Start to cudnn memory layout test\n");
         printf("\t mini batch size : %d\n",input_n);
@@ -91,8 +96,12 @@ int main(int argc, char *argv[]){
         printf("\t input image size: %d\n", input_w);
         printf("\t output channel : %d\n", filter_cout);
         printf("\t filter size : %d\n", filter_height);
+        printf("\t stride : %d\n", conv_stride[0]);
         printf("======================================\n");
     }
+
+    out_w = outputDim(input_w,conv_pad[0],filter_width,conv_stride[0]);
+    out_h = outputDim(input_h,conv_pad[1],filter_height,conv_stride[1]);
 
     // Allocate host memory
     h_input = (float*)malloc(input_n*input_c*input_h*input_w*sizeof(float));
@@ -213,6 +222,15 @@ int main(int argc, char *argv[]){
     elapsed_time = (double)(end_point.tv_sec)*1000+(double)(end_point.tv_usec)/1000-(double)(start_point.tv_sec)*1000-(double)(start_point.tv_usec)/1000;
     printf(" Elapsed Time : %f ms\n",elapsed_time);
 
+    dim3 Dg(input_c, input_h, input_w);
+    dim3 Db(input_n, 1, 1);
+
+    gettimeofday(&start_point,NULL);
+    Transformation<<<Dg, Db>>>(d_input,d_input);
+    cudaDeviceSynchronize(); 
+    gettimeofday(&end_point,NULL);
+    elapsed_time = (double)(end_point.tv_sec)*1000+(double)(end_point.tv_usec)/1000-(double)(start_point.tv_sec)*1000-(double)(start_point.tv_usec)/1000;
+    printf(" Elapsed Time to Transform from CHWN to NCHW: %f ms\n",elapsed_time);
 
     // free host memory
     free(h_input);
@@ -232,4 +250,13 @@ int main(int argc, char *argv[]){
     // Destroy Curand Generator
     curandDestroyGenerator(gen);
 #endif
+}
+
+// Transformation from CHWN to NHWC
+__global__ void Transformation(float *in, float *out){
+    int tx = threadIdx.x;
+    int bx = blockIdx.x;
+    int by = blockIdx.y;
+    int bz = blockIdx.z;
+    out[(((tx*gridDim.z + bz)*gridDim.y+by)*gridDim.x)+bx] = in[(((bz*gridDim.y+by)*gridDim.x)+bx)*blockDim.x+tx];
 }
